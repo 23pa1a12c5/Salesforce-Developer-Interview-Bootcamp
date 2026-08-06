@@ -1,0 +1,19 @@
+<template>
+    <lightning-card title="Vehicle Details">
+
+        <template if:true={vehicles.data}>
+            <template for:each={vehicles.data} for:item="vehicle">
+                <p key={vehicle.Id}>
+                    {vehicle.Name} -
+                    {vehicle.Vehicle_Number__c} -
+                    {vehicle.Brand__c}
+                </p>
+            </template>
+        </template>
+
+        <template if:true={vehicles.error}>
+            <p>Error loading vehicles.</p>
+        </template>
+
+    </lightning-card>
+</template>

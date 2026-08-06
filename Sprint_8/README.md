@@ -1,138 +1,300 @@
-## Topic
-Bulk Processing and Governor Limits
+# Advanced Apex (Bulkification, Queueable, Batch & Scheduled Apex)
+
+## 📌 Objective
+
+The objective  was to improve the scalability and performance of the Placement Management System by implementing Bulkified Apex, Queueable Apex, Queueable Chaining, Batch Apex, and Scheduled Apex.
+
+---
+
+# Sprint 17 – Bulkified Trigger
 
 ## Objective
-Learn how to design Apex code that processes multiple records efficiently by following Salesforce bulkification best practices and avoiding Governor Limit exceptions.
+
+Bulkify the Application Trigger so that it can process multiple Application records efficiently without violating Salesforce Governor Limits.
+
+## Implementation
+
+- Replaced single-record processing with bulk processing.
+- Updated the trigger to call:
+  ```apex
+  ApplicationService.validateApplications(Trigger.new);
+  ```
+- Removed SOQL queries from loops.
+- Improved trigger performance for bulk inserts.
+
+### Files
+
+- ApplicationTrigger.trigger
+- ApplicationService.cls
 
 ---
 
-## Practical Tasks Completed
+# Sprint 18 – Bulkified Application Service
 
-### Sprint 17 – Bulk Validation
+## Objective
 
-Implemented bulk validation for job applications.
+Optimize the ApplicationService class for bulk processing.
 
-### Features
-- Processed multiple Application records together.
-- Collected Student IDs using `Set<Id>`.
-- Collected Job IDs using `Set<Id>`.
-- Queried Students in a single SOQL query.
-- Queried Jobs in a single SOQL query.
-- Used `Map<Id, Student__c>` for efficient lookups.
-- Used `Map<Id, Job__c>` for efficient lookups.
-- Validated duplicate applications.
-- Validated student eligibility.
-- Eliminated SOQL queries inside loops.
+## Implementation
 
----
+Implemented:
 
-### Sprint 18 – Bulk Processing After Update
+- Set<Id>
+- Map<Id, Student__c>
+- Map<Id, Job__c>
 
-Implemented bulk processing when an Application status changes to **Selected**.
+Bulk queried:
 
-### Features
-- Processed multiple updated Application records.
-- Compared `Trigger.oldMap` and `Trigger.new`.
-- Collected selected Student IDs.
-- Retrieved Students using a single SOQL query.
-- Updated Student records using one DML statement.
-- Changed Student Status to **Placed**.
-- Continued existing services:
-  - Placement Statistics
-  - Notification Service
-  - Alumni Service
+- Students
+- Jobs
+- Existing Applications
 
----
+Validated all applications using a single execution flow.
 
-## Files Included
+### Optimizations
+
+- Eliminated SOQL inside loops.
+- Reduced database queries.
+- Improved governor limit usage.
+- Enabled processing of hundreds of Application records efficiently.
+
+### Files
 
 - ApplicationService.cls
+
+---
+
+# Sprint 19 – Queueable Apex
+
+## Objective
+
+Execute post-placement operations asynchronously.
+
+## Implementation
+
+Created Queueable Apex class:
+
+- OfferPostProcessingJob.cls
+
+Features:
+
+- Implements Queueable interface
+- Retrieves Application record
+- Sends notification
+- Updates Alumni information
+- Executes asynchronously
+
+Used:
+
+```apex
+System.enqueueJob(new OfferPostProcessingJob(app.Id));
+```
+
+### Files
+
+- OfferPostProcessingJob.cls
+
+---
+
+# Sprint 20 – Queueable Chaining
+
+## Objective
+
+Execute multiple asynchronous jobs sequentially.
+
+## Implementation
+
+Created:
+
+- StudentPlacementJob.cls
+
+Flow:
+
+Application Trigger
+↓
+StudentPlacementJob
+↓
+OfferPostProcessingJob
+
+Used:
+
+```apex
+System.enqueueJob(
+    new StudentPlacementJob(app.Id)
+);
+```
+
+Inside StudentPlacementJob:
+
+```apex
+System.enqueueJob(
+    new OfferPostProcessingJob(applicationId)
+);
+```
+
+### Benefits
+
+- Better separation of business logic
+- Scalable asynchronous processing
+- Demonstrates Queueable Chaining
+
+### Files
+
+- StudentPlacementJob.cls
+- OfferPostProcessingJob.cls
 - ApplicationTrigger.trigger
-- NotificationService.cls
-- AlumniService.cls
 
 ---
 
-## Concepts Learned
+# Sprint 21 – Batch Apex
 
-- Governor Limits
-- Bulkification
-- Bulk Processing
-- Trigger.new
-- Trigger.oldMap
-- Sets
-- Maps
-- Lists
-- SOQL Optimization
-- DML Optimization
-- Avoiding SOQL inside Loops
-- Avoiding DML inside Loops
-- Collection-Based Processing
-- Enterprise Trigger Design
+## Objective
+
+Process large numbers of Student records efficiently.
+
+## Implementation
+
+Created:
+
+- StudentStatusBatch.cls
+
+Implemented methods:
+
+- start()
+- execute()
+- finish()
+
+Features
+
+- Queries Student records
+- Updates Status field
+- Processes records in batches
+- Displays debug logs
+
+Executed using:
+
+```apex
+Database.executeBatch(new StudentStatusBatch(), 200);
+```
+
+### Verification
+
+Observed:
+
+```
+Batch processed: 2 students
+Batch Job Completed
+```
+
+### Files
+
+- StudentStatusBatch.cls
 
 ---
 
-## Bulk Processing Flow
+# Sprint 22 – Scheduled Apex
 
-### Before Insert
+## Objective
 
-```
-Trigger.new
-      │
-      ▼
-validateApplications()
-      │
-      ▼
-Collect Student IDs
-Collect Job IDs
-      │
-      ▼
-Single Student Query
-Single Job Query
-      │
-      ▼
-Create Maps
-      │
-      ▼
-Validate Applications
+Automatically execute Batch Apex at scheduled intervals.
+
+## Implementation
+
+Created:
+
+- DailyStudentBatchScheduler.cls
+
+Implemented:
+
+```apex
+implements Schedulable
 ```
 
-### After Update
+Inside execute():
+
+```apex
+Database.executeBatch(new StudentStatusBatch(), 200);
+```
+
+Scheduled using:
+
+```apex
+String cronExp = '0 0 0 1 1 ? 2099';
+
+System.schedule(
+    'Daily Student Batch',
+    cronExp,
+    new DailyStudentBatchScheduler()
+);
+```
+
+### Verification
+
+Verified under:
+
+Setup → Scheduled Jobs
+
+Job Name:
 
 ```
-Trigger.new
-      │
-      ▼
-processSelectedApplications()
-      │
-      ▼
-Collect Selected Student IDs
-      │
-      ▼
-Single Student Query
-      │
-      ▼
-Update Student Status
-      │
-      ▼
-Single DML Update
+Daily Student Batch
+```
+
+Status:
+
+```
+Scheduled Apex
+```
+
+### Files
+
+- DailyStudentBatchScheduler.cls
+- StudentStatusBatch.cls
+
+---
+
+# Concepts Learned
+
+- Bulkified Apex Triggers
+- Governor Limits Optimization
+- Collections (Set & Map)
+- Queueable Apex
+- Queueable Chaining
+- Batch Apex
+- Scheduled Apex
+- Asynchronous Processing
+- Scalable Apex Design
+
+---
+
+# Files Included
+
+```
+Day_8
+│
+├── ApplicationService.cls
+├── ApplicationTrigger.trigger
+├── OfferPostProcessingJob.cls
+├── StudentPlacementJob.cls
+├── StudentStatusBatch.cls
+├── DailyStudentBatchScheduler.cls
+├── Screenshots
+└── README.md
 ```
 
 ---
 
-## Learning Outcomes
+# Outcome
 
-- Understood Salesforce Governor Limits.
-- Implemented bulk-safe Apex code.
-- Optimized SOQL and DML operations.
-- Used Sets and Maps for efficient data processing.
-- Designed scalable Trigger architecture.
-- Applied enterprise-level Apex development practices.
+Successfully implemented:
+
+- Bulkified Trigger
+- Bulkified Service Layer
+- Queueable Apex
+- Queueable Chaining
+- Batch Apex
+- Scheduled Apex
+
+The Placement Management System is now optimized for handling large data volumes while following Salesforce Apex best practices and Governor Limits.
 
 ---
-
-## Status
-
-✅ Sprint 17 Completed
-
-✅ Sprint 18 Completed

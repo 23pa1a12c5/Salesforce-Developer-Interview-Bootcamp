@@ -1,0 +1,35 @@
+<template>
+    <lightning-card title="Eligible Jobs">
+
+        <div class="slds-p-around_medium">
+
+            <template if:true={message}>
+                <div
+                    class="slds-notify slds-notify_alert slds-theme_success slds-m-bottom_medium"
+                    role="alert">
+                    {message}
+                </div>
+            </template>
+
+            <template if:true={errorMessage}>
+                <div
+                    class="slds-notify slds-notify_alert slds-theme_error slds-m-bottom_medium"
+                    role="alert">
+                    {errorMessage}
+                </div>
+            </template>
+
+            <template for:each={jobs} for:item="job">
+
+                <c-job-card
+                    key={job.Id}
+                    job={job}
+                    onapply={handleApply}>
+                </c-job-card>
+
+            </template>
+
+        </div>
+
+    </lightning-card>
+</template>

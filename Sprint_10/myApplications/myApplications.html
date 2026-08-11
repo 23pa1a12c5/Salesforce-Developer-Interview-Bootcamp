@@ -1,0 +1,85 @@
+<template>
+
+    <lightning-card title="My Applications">
+
+        <div class="slds-p-around_medium">
+
+            <!-- Loading -->
+
+            <template if:true={loading}>
+
+                <lightning-spinner
+                    alternative-text="Loading applications"
+                    size="medium">
+                </lightning-spinner>
+
+            </template>
+
+
+            <!-- Error -->
+
+            <template if:true={errorMessage}>
+
+                <div
+                    class="slds-notify
+                           slds-notify_alert
+                           slds-theme_error
+                           slds-m-bottom_medium">
+
+                    {errorMessage}
+
+                </div>
+
+            </template>
+
+
+            <!-- Application List -->
+
+            <template if:true={hasApplications}>
+
+                <template
+                    for:each={applications}
+                    for:item="application">
+
+                    <div
+                        key={application.Id}
+                        class="slds-m-bottom_medium">
+
+                        <c-application-card
+                            application={application}>
+                        </c-application-card>
+
+                    </div>
+
+                </template>
+
+            </template>
+
+
+            <!-- Empty State -->
+
+            <template if:true={showEmptyState}>
+
+                <c-empty-state>
+                </c-empty-state>
+
+            </template>
+
+
+            <!-- Refresh -->
+
+            <div class="slds-m-top_medium">
+
+                <lightning-button
+                    label="Refresh Applications"
+                    variant="brand"
+                    onclick={handleRefresh}>
+                </lightning-button>
+
+            </div>
+
+        </div>
+
+    </lightning-card>
+
+</template>

@@ -1,0 +1,237 @@
+<template>
+
+    <lightning-card title="Student Placement Profile">
+
+        <div class="slds-p-around_medium">
+
+            <!-- LOADING -->
+
+            <template if:true={isLoading}>
+
+                <div class="slds-align_absolute-center slds-p-around_large">
+
+                    <lightning-spinner
+                        alternative-text="Loading profile">
+                    </lightning-spinner>
+
+                    <span class="slds-m-left_small">
+                        Loading your profile...
+                    </span>
+
+                </div>
+
+            </template>
+
+
+            <!-- FORM -->
+
+            <template if:false={isLoading}>
+
+                <!-- SUCCESS MESSAGE -->
+
+                <template if:true={message}>
+
+                    <div
+                        class="slds-notify
+                               slds-notify_alert
+                               slds-theme_success
+                               slds-m-bottom_medium">
+
+                        {message}
+
+                    </div>
+
+                </template>
+
+
+                <!-- ERROR MESSAGE -->
+
+                <template if:true={errorMessage}>
+
+                    <div
+                        class="slds-notify
+                               slds-notify_alert
+                               slds-theme_error
+                               slds-m-bottom_medium">
+
+                        {errorMessage}
+
+                    </div>
+
+                </template>
+
+
+                <div class="slds-grid slds-wrap slds-gutters">
+
+
+                    <!-- NAME -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-input
+                            name="name"
+                            label="Student Name"
+                            value={name}
+                            required
+                            onchange={handleChange}>
+                        </lightning-input>
+
+                    </div>
+
+
+                    <!-- STUDENT ID -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-input
+                            name="studentIdValue"
+                            label="Student ID"
+                            value={studentIdValue}
+                            required
+                            onchange={handleChange}>
+                        </lightning-input>
+
+                    </div>
+
+
+                    <!-- PHONE -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-input
+                            name="phone"
+                            label="Phone"
+                            value={phone}
+                            required
+                            onchange={handleChange}>
+                        </lightning-input>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-input
+                            name="email"
+                            type="email"
+                            label="Email"
+                            value={email}
+                            required
+                            onchange={handleChange}>
+                        </lightning-input>
+
+                    </div>
+
+
+                    <!-- DEPARTMENT -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-combobox
+                            name="department"
+                            label="Department"
+                            value={department}
+                            options={departmentOptions}
+                            required
+                            onchange={handleChange}>
+                        </lightning-combobox>
+
+                    </div>
+
+
+                    <!-- CGPA -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-input
+                            name="cgpa"
+                            type="number"
+                            label="CGPA"
+                            value={cgpa}
+                            min="0"
+                            max="10"
+                            step="0.01"
+                            required
+                            onchange={handleChange}>
+                        </lightning-input>
+
+                    </div>
+
+
+                    <!-- SKILLS -->
+
+                    <div class="slds-col slds-size_1-of-1">
+
+                        <lightning-textarea
+                            name="skills"
+                            label="Skills"
+                            value={skills}
+                            onchange={handleChange}>
+                        </lightning-textarea>
+
+                    </div>
+
+
+                    <!-- LOCATION -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-combobox
+                            name="preferredLocation"
+                            label="Preferred Location"
+                            value={preferredLocation}
+                            options={locationOptions}
+                            onchange={handleChange}>
+                        </lightning-combobox>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="slds-col slds-size_1-of-2">
+
+                        <lightning-combobox
+                            name="status"
+                            label="Status"
+                            value={status}
+                            options={statusOptions}
+                            onchange={handleChange}>
+                        </lightning-combobox>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SAVE -->
+
+                <div class="slds-m-top_medium">
+
+                    <lightning-button
+                        label="Save Profile"
+                        variant="brand"
+                        onclick={handleSave}
+                        disabled={isSaving}>
+                    </lightning-button>
+
+
+                    <template if:true={isSaving}>
+
+                        <span class="slds-m-left_small">
+                            Saving...
+                        </span>
+
+                    </template>
+
+                </div>
+
+            </template>
+
+        </div>
+
+    </lightning-card>
+
+</template>
